@@ -56,36 +56,33 @@ const typed = new Typed('.multiple-text', {
     loop: true,
 });
 
-// Initialize EmailJS
-(function() {
-    emailjs.init("YOUR_USER_ID"); // Replace with your actual User ID
-})();
-
-// Add event listener to the form
-document.getElementById('contact-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent default form submission
-
+function sendMessage() {
     // Collect form data
-    const formData = {
-        from_name: document.getElementById('from_name').value,
-        email: document.getElementById('email').value,
-        mobile: document.getElementById('mobile').value,
-        subject: document.getElementById('subject').value,
-        message: document.getElementById('message').value
+    const form = document.getElementById('contact-form');
+    const formData = new FormData(form);
+
+    // Convert form data to a JSON object
+    const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        message: formData.get('message')
     };
 
-    console.log('Sending the following data:', formData); // Log form data for debugging
-
-    // Send email using EmailJS
-    emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", formData)
-        .then(function(response) {
-            console.log('SUCCESS!', response.status, response.text);
-            alert('Message sent successfully!');
-            document.getElementById('contact-form').reset(); // Reset the form
-        }, function(error) {
-            console.log('FAILED...', error);
-            alert('Failed to send message. Please try again.');
-        });
-});
-
+    // Send data to the server
+    fetch('/send-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('response').innerText = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('response').innerText = 'Failed to send message.';
+    });
+}
 
